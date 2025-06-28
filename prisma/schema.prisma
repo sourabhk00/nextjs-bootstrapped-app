@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  resume        Resume?
+  interviews    Interview[]
+  applications  JobApplication[]
+  sessions      CounselorSession[]
+  notifications Notification[]
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  content     String
+  atsScore    Int
+  skills      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Interview {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // mock or real
+  feedback    String   // JSON string
+  recording   String?  // URL to recording
+  score       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Job {
+  id            String    @id @default(cuid())
+  title         String
+  company       String
+  location      String
+  description   String
+  requirements  String    // JSON string array
+  salary        String?
+  applications  JobApplication[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JobApplication {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  status    String   // pending, accepted, rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Counselor {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  specialty String    // JSON string array
+  sessions  CounselorSession[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model CounselorSession {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  counselorId String
+  counselor   Counselor @relation(fields: [counselorId], references: [id])
+  date        DateTime
+  duration    Int       // in minutes
+  status      String    // scheduled, completed, cancelled
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // job_alert, interview_reminder, counselor_message
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
